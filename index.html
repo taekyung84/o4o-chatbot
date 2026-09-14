@@ -599,6 +599,250 @@
     color: var(--accent);
   }
 
+  /* KDS Barcode Cards & Container */
+  .kds-chip.emergency {
+    border-color: #FCA5A5;
+    background: #FEF2F2;
+    color: #DC2626;
+    font-weight: 700;
+  }
+  .kds-chip.emergency:hover {
+    background: #FEE2E2;
+    border-color: #EF4444;
+  }
+
+  .kds-barcode-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 10px;
+    margin-bottom: 8px;
+  }
+
+  .kds-barcode-card {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-8);
+    padding: 12px 14px;
+    box-shadow: var(--shadow-sm);
+    cursor: pointer;
+    transition: transform var(--duration-fast) var(--ease-kds), box-shadow var(--duration-fast) var(--ease-kds), border-color var(--duration-fast);
+    position: relative;
+    user-select: none;
+  }
+
+  .kds-barcode-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--accent);
+  }
+
+  .kds-barcode-card:active {
+    transform: translateY(0);
+  }
+
+  .kds-barcode-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+
+  .kds-barcode-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 8px;
+    border-radius: var(--radius-4);
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .kds-barcode-tag.book {
+    background: var(--kds-blue-100);
+    color: var(--kds-blue-800);
+  }
+
+  .kds-barcode-tag.stationery {
+    background: var(--kds-red-100);
+    color: var(--kds-red-600);
+  }
+
+  .kds-barcode-num {
+    font-family: Consolas, Monaco, monospace;
+    font-weight: 700;
+    font-size: 13px;
+    color: #333333;
+    letter-spacing: 1px;
+  }
+
+  .kds-barcode-svg-wrap {
+    background: #ffffff;
+    padding: 6px 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+  }
+
+  .kds-barcode-svg-wrap svg {
+    max-width: 100%;
+    height: 60px;
+    display: block;
+  }
+
+  .kds-barcode-action {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px dashed var(--border);
+    font-size: 11px;
+    color: var(--fg-secondary);
+  }
+
+  .kds-barcode-action span {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 500;
+    color: var(--accent);
+  }
+
+  .kds-mini-btn {
+    background: var(--bg-subtle);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-4);
+    padding: 2px 8px;
+    font-size: 11px;
+    cursor: pointer;
+    font-family: inherit;
+    color: var(--fg);
+    transition: all var(--duration-fast);
+  }
+
+  .kds-mini-btn:hover {
+    background: var(--kds-blue-100);
+    color: var(--accent);
+    border-color: var(--kds-blue-200);
+  }
+
+  /* KDS Alert Card (Warning/Notice) */
+  .kds-alert-card {
+    display: flex;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: var(--radius-8);
+    font-size: 12.5px;
+    line-height: 18px;
+    margin-top: 8px;
+  }
+
+  .kds-alert-card.warning {
+    background: #FFFBEB;
+    border: 1px solid #FCD34D;
+    color: #78350F;
+  }
+
+  .kds-alert-card.warning strong {
+    color: #B45309;
+  }
+
+  .kds-alert-icon {
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  /* Fullscreen Barcode Modal for POS Scanning */
+  .barcode-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(5px);
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 16px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+  }
+
+  .barcode-modal-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .barcode-modal-content {
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 26px 20px 20px;
+    width: 100%;
+    max-width: 380px;
+    text-align: center;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    animation: kdsScaleUp 0.2s var(--ease-kds);
+  }
+
+  .barcode-modal-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #111111;
+    margin-bottom: 4px;
+  }
+
+  .barcode-modal-desc {
+    font-size: 12px;
+    color: #666666;
+    margin-bottom: 16px;
+  }
+
+  .barcode-modal-box {
+    background: #ffffff;
+    border: 2px solid #eeeeee;
+    border-radius: 12px;
+    padding: 20px 10px 14px;
+    margin-bottom: 16px;
+  }
+
+  .barcode-modal-box svg {
+    max-width: 100%;
+    height: 90px;
+    display: block;
+    margin: 0 auto;
+  }
+
+  .barcode-modal-code {
+    font-family: Consolas, Monaco, monospace;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    color: #000000;
+    margin-top: 12px;
+  }
+
+  .barcode-modal-close {
+    width: 100%;
+    height: 48px;
+    background: var(--kds-blue-700);
+    color: #ffffff;
+    border: none;
+    border-radius: var(--radius-8);
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background var(--duration-fast);
+  }
+
+  .barcode-modal-close:hover {
+    background: var(--kds-blue-800);
+  }
+
   /* KDS Badge */
   .bubble .kds-badge {
     display: inline-flex;
@@ -912,6 +1156,10 @@
 
   <!-- KDS Chip Bar (chip-basic, radius-round) -->
   <div id="chips-bar">
+    <button class="kds-chip emergency" onclick="askChip('현장 비상 CS 바코드 보여줘')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 5v14M21 5v14M7 5v14M17 5v14M11 5v14M14 5v14"/></svg>
+      <span>🚨 비상 바코드(CS)</span>
+    </button>
     <button class="kds-chip" onclick="askChip('체크인이 뭔가요')">
       <svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
       <span>체크인이란?</span>
@@ -1030,10 +1278,110 @@
         PC에 실행 중인 Ollama(포트 11434)와 직접 연동하여 최신 오픈소스 한국어 모델(EXAONE 3.5, Qwen 2.5, Gemma 2)로 심층 생성 답변합니다.
       </div>
     </div>
+</div>
+
+<!-- POS Barcode Scan Zoom Modal -->
+<div id="barcode-modal" class="barcode-modal-overlay" onclick="closeBarcodeModal(event)">
+  <div class="barcode-modal-content" onclick="event.stopPropagation()">
+    <div class="barcode-modal-title" id="modal-bc-title">도서 10% 할인 쿠폰</div>
+    <div class="barcode-modal-desc">매장 POS 바코드 리더기로 직접 스캔해 주세요</div>
+    <div class="barcode-modal-box">
+      <div id="modal-bc-svg"></div>
+      <div class="barcode-modal-code" id="modal-bc-code">202512120003</div>
+    </div>
+    <button class="barcode-modal-close" onclick="closeBarcodeModal()">닫기</button>
   </div>
 </div>
 
 <script>
+/* ==========================================================================
+   Code 128 Barcode Vector SVG Generator (Client-Side)
+   POS Scanner Compatible (Code 128B)
+   ========================================================================== */
+const CODE128_PATTERNS = [
+  '212222', '222122', '222221', '121223', '121322', '131222', '122213', '122312', '132212', '221213',
+  '221312', '231212', '112232', '122132', '122231', '113222', '123122', '123221', '223211', '221132',
+  '221231', '213212', '223112', '312131', '311222', '321122', '321221', '312212', '322112', '322211',
+  '212123', '212321', '232121', '111323', '131123', '131321', '112313', '132113', '132311', '211313',
+  '231113', '231311', '112133', '112331', '132131', '113123', '113321', '133121', '313121', '211331',
+  '231131', '213113', '213311', '213131', '311123', '311321', '331121', '312113', '312311', '332111',
+  '314111', '221411', '431111', '111224', '111422', '121124', '121421', '141122', '141221', '112214',
+  '112412', '122114', '122411', '142112', '142211', '241211', '221114', '413111', '241112', '134111',
+  '111242', '121142', '121241', '114212', '124112', '124211', '411212', '421112', '421211', '212141',
+  '214121', '412121', '111143', '111341', '131141', '114113', '114311', '411113', '411311', '113141',
+  '114131', '311141', '411131', '211412', '211214', '211232', '2331112'
+];
+
+function getCode128SVG(code, height = 64) {
+  const START_B = 104;
+  const STOP = 106;
+  const values = [START_B];
+  for (let i = 0; i < code.length; i++) {
+    values.push(code.charCodeAt(i) - 32);
+  }
+  let checksum = values[0];
+  for (let i = 1; i < values.length; i++) {
+    checksum += values[i] * i;
+  }
+  values.push(checksum % 103);
+  values.push(STOP);
+
+  const widths = [];
+  values.forEach(v => {
+    const pattern = CODE128_PATTERNS[v];
+    for (let j = 0; j < pattern.length; j++) {
+      widths.push(parseInt(pattern[j], 10));
+    }
+  });
+
+  const moduleWidth = 2.4;
+  const quietZone = 12;
+  const totalWidth = widths.reduce((a, b) => a + b, 0) * moduleWidth + quietZone * 2;
+
+  let rects = '';
+  let currX = quietZone;
+  let isBar = true;
+  widths.forEach(w => {
+    const bw = w * moduleWidth;
+    if (isBar) {
+      rects += `<rect x="${currX.toFixed(2)}" y="0" width="${bw.toFixed(2)}" height="${height}" fill="#000000"/>`;
+    }
+    currX += bw;
+    isBar = !isBar;
+  });
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${totalWidth} ${height}" width="100%" height="${height}" preserveAspectRatio="xMidYMid meet">${rects}</svg>`;
+}
+
+function openBarcodeModal(code, title, displayCode) {
+  const modal = document.getElementById('barcode-modal');
+  if (!modal) return;
+  document.getElementById('modal-bc-title').textContent = title;
+  document.getElementById('modal-bc-code').textContent = displayCode;
+  document.getElementById('modal-bc-svg').innerHTML = getCode128SVG(code, 96);
+  modal.classList.add('active');
+}
+
+function closeBarcodeModal(event) {
+  const modal = document.getElementById('barcode-modal');
+  if (!modal) return;
+  if (event && event.target && event.target !== modal && !event.target.classList.contains('barcode-modal-close')) {
+    return;
+  }
+  modal.classList.remove('active');
+}
+
+function copyBarcodeText(text, desc) {
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(() => {
+      showToast(`${desc} [${text}] 복사 완료`);
+    }).catch(() => {
+      showToast(`${desc}: ${text}`);
+    });
+  } else {
+    showToast(`${desc}: ${text}`);
+  }
+}
 /* ==========================================================================
    Knowledge Base (KB)
    점포운영지원팀 O4O 매장 서비스 개편 및 오픈 프로모션 공식 매뉴얼 기반
@@ -1074,7 +1422,7 @@ const KB = [
     id: 'checkin_benefits',
     keys: ['체크인 혜택', '혜택이 뭐', '혜택 종류', '쿠폰', 'e교환권', '바로드림', '도서 쿠폰', '문구 쿠폰', '체크인하면', '혜택을 알려', '할인 얼마', '쿠폰 금액'],
     title: '체크인 혜택 안내',
-    followUps: ['얼리버드 럭키', '쿠폰 어디서 확인', '단골매장 혜택'],
+    followUps: ['얼리버드 럭키', '쿠폰 어디서 확인', '현장 비상 CS 바코드', '단골매장 혜택'],
     answer: `체크인하시면 <strong>기본 혜택 3종</strong>이 모두 제공돼요.
     <div class="kds-info-box">
       <div class="kds-info-row"><span class="kds-info-label">바로드림</span><span class="kds-info-value">e교환권 <strong>1,000원</strong> (1만원 이상 바로드림 주문 시)</span></div>
@@ -1259,7 +1607,7 @@ const KB = [
     id: 'errors',
     keys: ['gps', '위치', '안 된다', '체크인 안', '오류', '반응 없', '인터넷', '안됨', '먹통', '인식 안돼'],
     title: '체크인 오류 시 점검 가이드',
-    followUps: ['담당자 안내', '회원 및 앱 설치'],
+    followUps: ['현장 비상 CS 바코드', '담당자 안내', '회원 및 앱 설치'],
     answer: `체크인이 진행되지 않을 때는 아래 항목을 순서대로 점검해 주십시오.
     <ul>
       <li>단말기 설정에서 <strong>GPS(위치 서비스) 허용</strong> 여부 확인</li>
@@ -1267,7 +1615,60 @@ const KB = [
       <li>Wi-Fi 또는 모바일 데이터 네트워크 연결 상태 점검</li>
       <li>교보문고 앱을 완전히 종료하신 후 재실행</li>
     </ul>
+    <div class="kds-alert-card warning" style="margin-top:8px;">
+      <div class="kds-alert-icon">💡</div>
+      <div class="kds-alert-body">
+        <strong>현장 즉시 해결이 필요한 경우</strong><br>
+        고객 단말기 오류 등으로 체크인이 불가할 때는 <strong>'현장 비상 CS 바코드'</strong>를 POS에서 스캔하여 10% 할인을 즉시 적용해 드릴 수 있습니다.
+      </div>
+    </div>
     현장 조치 후에도 지속해서 문제가 발생할 경우 <strong>프로덕트기획팀(이보현, 서시현)</strong>으로 문의해 주시기 바랍니다.`
+  },
+  {
+    id: 'emergency_barcode',
+    keys: ['바코드', '비상 바코드', 'cs 바코드', '현장 바코드', '할인 바코드', '도서 10%', '문구 10%', '202512120003', '202512120004', '체크인 안 될 때 바코드', '수기 처리', '현장 cs', '포스 바코드', '바코드 스캔', '비상 할인', '할인쿠폰 바코드', '비상바코드', '현장바코드'],
+    title: '🚨 현장 CS 비상 바코드 (도서·문구 10% 할인)',
+    followUps: ['체크인 오류 대처', '담당자 안내', '쿠폰 사용 조건'],
+    answer: `체크인 참여 고객 중 단말기/GPS 오류 등 여러 가지 사정으로 참여가 어렵거나, <strong>현장에서 즉시 해결이 필요한 긴급 CS</strong> 발생 시 아래 비상 바코드를 POS에서 직접 스캔하여 10% 할인을 적용해 주십시오.
+    
+    <div class="kds-barcode-container">
+      <div class="kds-barcode-card" onclick="openBarcodeModal('202512120003', '도서 10% 할인 쿠폰 (현장 CS용)', '202512120003')">
+        <div class="kds-barcode-header">
+          <span class="kds-barcode-tag book">도서 10% 할인</span>
+          <span class="kds-barcode-num">202512120003</span>
+        </div>
+        <div class="kds-barcode-svg-wrap">
+          ${getCode128SVG('202512120003', 60)}
+        </div>
+        <div class="kds-barcode-action">
+          <span>🔍 터치하여 POS 스캔용 확대</span>
+          <button class="kds-mini-btn" onclick="event.stopPropagation(); copyBarcodeText('202512120003', '도서 10% 바코드 번호')">복사</button>
+        </div>
+      </div>
+
+      <div class="kds-barcode-card" onclick="openBarcodeModal('202512120004', '문구 10% 할인 쿠폰 (현장 CS용)', '202512120004')">
+        <div class="kds-barcode-header">
+          <span class="kds-barcode-tag stationery">문구 10% 할인</span>
+          <span class="kds-barcode-num">202512120004</span>
+        </div>
+        <div class="kds-barcode-svg-wrap">
+          ${getCode128SVG('202512120004', 60)}
+        </div>
+        <div class="kds-barcode-action">
+          <span>🔍 터치하여 POS 스캔용 확대</span>
+          <button class="kds-mini-btn" onclick="event.stopPropagation(); copyBarcodeText('202512120004', '문구 10% 바코드 번호')">복사</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="kds-alert-card warning">
+      <div class="kds-alert-icon">⚠️</div>
+      <div class="kds-alert-body">
+        <strong>바로드림 1천원 쿠폰 요구 고객 대응 주의사항</strong><br>
+        바로드림 1,000원 쿠폰은 POS 현장 즉시 할인이 불가합니다.<br>
+        고객께서 바로드림 1천원 혜택을 요구하시는 경우, <strong>"고객센터로 문의 부탁드립니다"</strong>라고 정중히 안내해 주시기 바랍니다.
+      </div>
+    </div>`
   },
   {
     id: 'store_hub',
@@ -1293,7 +1694,10 @@ const SYNONYMS = {
   '위치': ['gps', '거리', '1km', '좌표'],
   '선물': ['경품', '스티커', '히퍼', '북캐시'],
   '도장': ['스탬프', 'qr', '챌린지'],
-  '회원': ['로그인', '가입', '계정']
+  '회원': ['로그인', '가입', '계정'],
+  '바코드': ['비상', 'cs', '할인', '포스', '스캔', '202512120003', '202512120004', '쿠폰'],
+  '비상': ['바코드', 'cs', '체크인안됨', '수기', '오류'],
+  'cs': ['바코드', '비상', '고객센터', '오류', '현장']
 };
 
 let currentEngine = 'rag'; // 'rag' or 'ollama'
