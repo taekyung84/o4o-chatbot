@@ -1215,8 +1215,14 @@
       </div>
       <div>
         <div class="bubble bot">
-          상단 추천 버튼을 누르시거나 궁금하신 업무 내용을 직접 입력해 주세요.<br>
-          본사 담당자 문의 전 <strong>"쿠폰 결제 취소 시 POS 임의할인은?", "체크인 안 될 때 비상 바코드는?", "광화문점 갔다가 일산점 온 고객 챌린지 인정돼?", "바로드림 1천원 달라는 고객 응대는?"</strong> 등 현장 고객 응대 및 처리 기준을 즉시 확인하실 수 있습니다.
+          매장 현장 고객 응대 시 필요한 기준을 즉시 확인하실 수 있습니다.<br>
+          상단 추천 버튼을 누르시거나, 아래와 같이 키워드로 간단히 검색해 보세요.
+          <ul style="margin-top:8px; margin-bottom:2px;">
+            <li><strong>비상 바코드</strong> : 체크인 오류 시 10% 현장 할인</li>
+            <li><strong>쿠폰 취소/반품</strong> : POS 임의할인 적용 기준</li>
+            <li><strong>챌린지 매장 기준</strong> : 다른 매장 방문 시 인정 여부</li>
+            <li><strong>바로드림 1천원</strong> : 현장 할인 불가 (고객센터 안내)</li>
+          </ul>
         </div>
         <div class="msg-time" id="init-time"></div>
       </div>
@@ -1511,13 +1517,13 @@ const KB = [
   },
   {
     id: 'same_store_rule',
-    keys: ['광화문 일산', '다른 매장 가면', '처음 방문 기준', '동일 매장 기준', '매장 바꾸면', '첫 방문 매장', '딴 매장'],
+    keys: ['광화문 일산', '다른 매장 가면', '처음 방문 기준', '동일 매장 기준', '매장 바꾸면', '첫 방문 매장', '딴 매장', '매장 변경'],
     title: '동일 매장 미션 달성 기준',
     followUps: ['챌린지 미션', '찬찬이 QR 인증'],
-    answer: `동일 매장 미션은 <strong>당월 최초로 방문한 매장 기준</strong>으로 누적 3회를 달성하셔야 해요.
+    answer: `동일 매장 미션은 <strong>당월 최초로 방문한 매장 기준</strong>으로 3회 누적 시 달성됩니다.
     <div class="kds-info-box">
-      <div class="kds-info-row"><span class="kds-info-label">예시 안내</span><span class="kds-info-value">광화문점 1회 방문 후 일산점 3회 방문 시<br>→ 일산점 3회로 완료되지 않음<br>→ '매장 탐험 미션' 2단계로 분산 반영됨</span></div>
-      <div class="kds-info-row"><span class="kds-info-label">완료 방법</span><span class="kds-info-value">처음 방문했던 매장(광화문점)을 누적 3회 채워주셔야 달성됩니다.</span></div>
+      <div class="kds-info-row"><span class="kds-info-label">고객 문의 예시</span><span class="kds-info-value">광화문점 1회 방문 후 일산점 3회 방문 고객<br>→ 일산점 3회로 동일매장 미션 미달성<br>→ '매장 탐험 미션' 2단계로 분산 카운트됨</span></div>
+      <div class="kds-info-row"><span class="kds-info-label">응대 가이드</span><span class="kds-info-value">당월 처음 방문했던 매장(광화문점)을 누적 3회 채워야 달성된다고 안내해 주십시오.</span></div>
     </div>`
   },
   {
@@ -1567,13 +1573,13 @@ const KB = [
   },
   {
     id: 'refund_policy',
-    keys: ['반품', '취소', '쿠폰 재사용', '반품 후', '바로드림 반품', '환불', '주문 취소', '결제 취소'],
-    title: '반품 및 결제 취소 시 처리 기준',
-    followUps: ['쿠폰 캡처 사용', '담당자 안내'],
-    answer: `쿠폰 사용 결제 건 취소 시에는 아래 기준으로 응대해 주세요.
+    keys: ['반품', '취소', '쿠폰 재사용', '반품 후', '바로드림 반품', '환불', '주문 취소', '결제 취소', '임의할인'],
+    title: '쿠폰 사용 결제건 취소/반품 처리 기준',
+    followUps: ['현장 비상 CS 바코드', '담당자 안내'],
+    answer: `쿠폰 사용 결제건 취소 또는 반품 시 현장 응대 기준입니다.
     <div class="kds-info-box">
-      <div class="kds-info-row"><span class="kds-info-label">매장 쿠폰</span><span class="kds-info-value">시스템상 쿠폰 재발급은 불가하므로 카운터 관리자 권한으로 <strong>POS 임의할인</strong>을 적용해 주시기 바랍니다.</span></div>
-      <div class="kds-info-row"><span class="kds-info-label">바로드림 반품</span><span class="kds-info-value">매장 계산대에서 직접 처리가 불가하므로 <strong>고객센터(1544-1900)</strong>로 안내해 주십시오.</span></div>
+      <div class="kds-info-row"><span class="kds-info-label">매장 결제 건</span><span class="kds-info-value">시스템상 쿠폰 재발급 불가<br>→ 카운터 관리자 권한으로 <strong>POS 임의할인</strong> 즉시 적용</span></div>
+      <div class="kds-info-row"><span class="kds-info-label">바로드림 건</span><span class="kds-info-value">매장 계산대 임의 처리 불가<br>→ <strong>고객센터(1544-1900)</strong> 문의 안내</span></div>
     </div>`
   },
   {
