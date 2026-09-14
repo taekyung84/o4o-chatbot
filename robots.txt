@@ -1,0 +1,4 @@
+# Block all web crawlers and search engine bots
+# 교보문고 점포운영지원팀 O4O 체크인챌린지 챗봇 비공개 검색 제외 설정
+User-agent: *
+Disallow: /
