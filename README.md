@@ -34,9 +34,9 @@
 
 이 레포지토리는 GitHub Pages를 통해 무료로 웹에 배포하여 누구나 모바일/PC에서 접속할 수 있습니다.
 
-### 접속 주소
-```
-https://<GitHub_사용자ID>.github.io/<레포지토리_이름>/
+### 🌐 온라인 서비스 주소
+```text
+https://<GitHub_사용자ID>.github.io/o4o-chatbot/
 ```
 
 ### GitHub Pages 활성화 방법
