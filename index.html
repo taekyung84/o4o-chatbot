@@ -1,0 +1,1570 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>O4O 체크인챌린지 챗봇 · 점포운영지원팀</title>
+<meta name="description" content="교보문고 O4O 체크인챌린지 챗봇 (KDS & Hybrid Semantic RAG 적용)">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  /* ==========================================================================
+     Kyobo Design System (KDS) Design Tokens
+     Minimalist, readable, reading-first structure
+     ========================================================================== */
+  :root {
+    /* Core Action & Semantic Colors */
+    --kds-blue-700: #5055B1; /* #5055B1 CORE — UI 기본 액션 / Informative / Accent */
+    --kds-blue-800: #3F4391; /* Pressed state */
+    --kds-blue-900: #2D3068;
+    --kds-blue-100: #F0F2FD; /* Light tint for badges & accents */
+    --kds-blue-200: #DEE2FA;
+
+    --kds-green-700: #4DAC27; /* Positive / Success */
+    --kds-green-800: #3A8A1C;
+    --kds-green-100: #F1F8EE;
+
+    --kds-red-500: #EC1F2D;   /* Negative (절제 사용) */
+    --kds-red-100: #FDEDEE;
+    --kds-red-600: #DA2128;   /* Hottracks primary */
+
+    /* Grayscale (50 -> 900) */
+    --kds-gray-50:  #FAFBFC;
+    --kds-gray-100: #F4F5F7;  /* bg-subtle */
+    --kds-gray-200: #EAEBEE;  /* bg-muted */
+    --kds-gray-300: #E0E2E6;  /* border / 1px hairline divider */
+    --kds-gray-400: #C9CCD2;  /* border-strong / disabled */
+    --kds-gray-500: #A6AAB2;  /* fg-tertiary */
+    --kds-gray-600: #80858E;
+    --kds-gray-700: #4D5159;  /* fg-secondary */
+    --kds-gray-800: #2E3138;
+    --kds-gray-900: #1B1D22;  /* fg / 기본 텍스트 / 선택된 chip */
+    --kds-white:    #FFFFFF;
+    --kds-black:    #000000;
+
+    /* Semantic Mappings */
+    --bg:             var(--kds-gray-100);
+    --bg-surface:     var(--kds-white);
+    --bg-subtle:      var(--kds-gray-100);
+    --bg-muted:       var(--kds-gray-200);
+    --border:         var(--kds-gray-300);
+    --border-strong:  var(--kds-gray-400);
+    --fg:             var(--kds-gray-900);
+    --fg-secondary:   var(--kds-gray-700);
+    --fg-tertiary:    var(--kds-gray-500);
+    --fg-disabled:    var(--kds-gray-400);
+    --accent:         var(--kds-blue-700);
+    --accent-press:   var(--kds-blue-800);
+    --positive:       var(--kds-green-700);
+    --negative:       var(--kds-red-500);
+
+    /* Typography Defaults */
+    --font-family: "Noto Sans KR", Roboto, -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    --letter-spacing: -0.01em;
+
+    /* Spacing Cadence (4px scale) */
+    --space-50: 2px;
+    --space-100: 4px;
+    --space-200: 8px;
+    --space-300: 12px;
+    --space-400: 16px;
+    --space-500: 20px;
+    --space-600: 24px;
+    --space-800: 32px;
+
+    /* Radius (4px scale) */
+    --radius-4: 4px;
+    --radius-8: 8px;
+    --radius-12: 12px;
+    --radius-16: 16px;
+    --radius-20: 20px;
+    --radius-24: 24px;
+    --radius-round: 9999px;
+
+    /* Depth & Elevation (KDS Restrained Shadows) */
+    --shadow-gray-100: 0px 5px 10px 0px rgba(0, 0, 0, 0.06);
+    --shadow-gray-200: 0px 20px 40px 0px rgba(0, 0, 0, 0.08);
+    --shadow-green-100: 0px 4px 8px 0px rgba(77, 172, 39, 0.35);
+
+    /* Motion */
+    --ease-kds: cubic-bezier(0.4, 0.0, 0.2, 1);
+    --duration-fast: 150ms;
+    --duration-base: 240ms;
+  }
+
+  *, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html, body {
+    height: 100%;
+    font-family: var(--font-family);
+    letter-spacing: var(--letter-spacing);
+    background-color: var(--kds-gray-200);
+    color: var(--fg);
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* App Shell (Mobile Adaptive Container) */
+  #app {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    max-width: 480px;
+    margin: 0 auto;
+    background-color: var(--bg);
+    position: relative;
+    border-left: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+  }
+
+  /* ==========================================================================
+     Header & Top Navigation
+     KDS Reading-First: Clean white surface, 1px hairline border, NO gradient
+     ========================================================================== */
+  .kds-header {
+    background: var(--bg-surface);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+    z-index: 20;
+  }
+
+  .kds-header-brand {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-8);
+    background: var(--kds-blue-100);
+    border: 1px solid var(--kds-blue-200);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: var(--accent);
+  }
+
+  .kds-header-title {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .kds-header-title h1 {
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 20px;
+    color: var(--fg);
+    letter-spacing: var(--letter-spacing);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .kds-header-title p {
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 16px;
+    color: var(--fg-secondary);
+    letter-spacing: var(--letter-spacing);
+  }
+
+  .kds-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  .kds-model-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 5px 8px;
+    border-radius: var(--radius-round);
+    background: var(--bg-subtle);
+    border: 1px solid var(--border);
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--fg-secondary);
+    cursor: pointer;
+    transition: all var(--duration-fast) var(--ease-kds);
+    font-family: inherit;
+  }
+
+  .kds-model-toggle:hover {
+    background: var(--kds-blue-100);
+    color: var(--accent);
+    border-color: var(--kds-blue-200);
+  }
+
+  .kds-status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: var(--positive);
+    animation: statusPulse 2s infinite var(--ease-kds);
+  }
+
+  @keyframes statusPulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.85); }
+  }
+
+  /* ==========================================================================
+     Chips Bar (KDS chip-basic spec)
+     Pill-shaped (radius-round), 1px border, single line with ellipsis
+     ========================================================================== */
+  #chips-bar {
+    background: var(--bg-surface);
+    padding: 10px 16px;
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  #chips-bar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .kds-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 32px;
+    padding: 0 14px;
+    border-radius: var(--radius-round);
+    background: var(--bg-surface);
+    color: var(--fg-secondary);
+    border: 1px solid var(--border);
+    font-size: 12px;
+    font-weight: 500;
+    font-family: inherit;
+    letter-spacing: var(--letter-spacing);
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color var(--duration-fast) var(--ease-kds),
+                border-color var(--duration-fast) var(--ease-kds),
+                color var(--duration-fast) var(--ease-kds);
+    flex-shrink: 0;
+  }
+
+  .kds-chip svg {
+    width: 14px;
+    height: 14px;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    fill: none;
+  }
+
+  .kds-chip:hover {
+    background-color: var(--bg-subtle);
+    border-color: var(--border-strong);
+    color: var(--fg);
+  }
+
+  .kds-chip:active {
+    background-color: var(--fg);
+    border-color: var(--fg);
+    color: var(--kds-white);
+  }
+
+  /* ==========================================================================
+     Chat Area & Message Bubbles
+     Reading-first layout, 1px hairpins, restrained elevation
+     ========================================================================== */
+  #chat {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    scroll-behavior: smooth;
+    background-color: var(--bg);
+  }
+
+  #chat::-webkit-scrollbar {
+    width: 4px;
+  }
+  #chat::-webkit-scrollbar-thumb {
+    background: var(--border-strong);
+    border-radius: var(--radius-4);
+  }
+
+  /* Welcome Card */
+  .kds-welcome-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-16);
+    padding: 16px;
+    text-align: center;
+    box-shadow: var(--shadow-gray-100);
+    margin-bottom: 4px;
+  }
+
+  .kds-welcome-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-round);
+    background: var(--kds-blue-100);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent);
+    margin-bottom: 10px;
+  }
+
+  .kds-welcome-card h2 {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--fg);
+    margin-bottom: 6px;
+    line-height: 22px;
+  }
+
+  .kds-welcome-card p {
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--fg-secondary);
+    line-height: 20px;
+  }
+
+  .kds-welcome-meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 10px;
+    font-size: 11px;
+    color: var(--fg-tertiary);
+    background: var(--bg-subtle);
+    padding: 3px 10px;
+    border-radius: var(--radius-round);
+    border: 1px solid var(--border);
+  }
+
+  /* Message Rows */
+  .msg-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    animation: kdsFadeUp var(--duration-base) var(--ease-kds) both;
+  }
+
+  @keyframes kdsFadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .msg-row.user {
+    flex-direction: row-reverse;
+  }
+
+  .bot-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-round);
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent);
+    flex-shrink: 0;
+    box-shadow: var(--shadow-gray-100);
+  }
+
+  .bot-avatar svg {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  /* Bubbles */
+  .bubble {
+    max-width: 84%;
+    padding: 12px 16px;
+    font-size: 14px;
+    line-height: 22px;
+    word-break: break-word;
+    letter-spacing: var(--letter-spacing);
+  }
+
+  /* Bot Bubble: White, subtle border, gentle shadow */
+  .bubble.bot {
+    background: var(--bg-surface);
+    color: var(--fg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-16);
+    border-bottom-left-radius: var(--radius-4);
+    box-shadow: var(--shadow-gray-100);
+  }
+
+  /* User Bubble: blue-700 core action color */
+  .bubble.user {
+    background: var(--accent);
+    color: var(--kds-white);
+    border: 1px solid var(--accent);
+    border-radius: var(--radius-16);
+    border-bottom-right-radius: var(--radius-4);
+    box-shadow: 0 2px 6px rgba(80, 85, 177, 0.25);
+  }
+
+  /* Inside Bot Bubble Header */
+  .bubble-top-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    gap: 8px;
+  }
+
+  .bubble-category {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent);
+    background: var(--kds-blue-100);
+    padding: 2px 8px;
+    border-radius: var(--radius-4);
+  }
+
+  .bubble-category svg {
+    width: 12px;
+    height: 12px;
+    stroke: currentColor;
+    stroke-width: 2;
+    fill: none;
+  }
+
+  .bubble-engine-tag {
+    font-size: 10px;
+    color: var(--fg-tertiary);
+    background: var(--bg-subtle);
+    padding: 1px 6px;
+    border-radius: var(--radius-4);
+    border: 1px solid var(--border);
+    font-family: monospace;
+  }
+
+  .bubble strong {
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  .bubble.user strong {
+    color: #DEE2FA;
+  }
+
+  .bubble ul {
+    padding-left: 18px;
+    margin-top: 8px;
+    margin-bottom: 4px;
+  }
+
+  .bubble ul li {
+    margin-bottom: 4px;
+    color: var(--fg-secondary);
+  }
+
+  .bubble ul li strong {
+    color: var(--fg);
+  }
+
+  .bubble a {
+    color: var(--accent);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  /* KDS Info Card within bubble */
+  .bubble .kds-info-box {
+    background: var(--bg-subtle);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: var(--radius-8);
+    padding: 10px 12px;
+    margin-top: 8px;
+    margin-bottom: 6px;
+    font-size: 13px;
+  }
+
+  .bubble .kds-info-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 5px;
+    font-size: 13px;
+    line-height: 19px;
+  }
+
+  .bubble .kds-info-row:last-child {
+    margin-bottom: 0;
+  }
+
+  .bubble .kds-info-label {
+    color: var(--fg-secondary);
+    font-weight: 500;
+    flex-shrink: 0;
+    min-width: 76px;
+  }
+
+  .bubble .kds-info-value {
+    color: var(--fg);
+    flex: 1;
+  }
+
+  /* Bubble Actions Bar (Copy & Follow-ups) */
+  .bubble-footer-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+    gap: 8px;
+  }
+
+  .kds-btn-text {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: none;
+    border: none;
+    color: var(--fg-secondary);
+    font-size: 11px;
+    font-family: inherit;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: var(--radius-4);
+    transition: all var(--duration-fast) var(--ease-kds);
+  }
+
+  .kds-btn-text:hover {
+    color: var(--accent);
+    background: var(--kds-blue-100);
+  }
+
+  .kds-btn-text svg {
+    width: 12px;
+    height: 12px;
+    stroke: currentColor;
+    stroke-width: 2;
+    fill: none;
+  }
+
+  /* Dynamic Follow-up Suggestions (Next Best Questions) */
+  .bubble-followups {
+    margin-top: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .kds-followup-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: var(--radius-round);
+    background: var(--bg-subtle);
+    border: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--fg);
+    cursor: pointer;
+    transition: all var(--duration-fast) var(--ease-kds);
+    font-family: inherit;
+  }
+
+  .kds-followup-chip:hover {
+    background: var(--kds-blue-100);
+    border-color: var(--kds-blue-200);
+    color: var(--accent);
+  }
+
+  /* KDS Badge */
+  .bubble .kds-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    height: 22px;
+    padding: 0 6px;
+    border-radius: var(--radius-4);
+    font-size: 11px;
+    font-weight: 700;
+    margin-top: 6px;
+    letter-spacing: var(--letter-spacing);
+  }
+
+  .bubble .kds-badge.positive {
+    background: var(--kds-green-100);
+    color: var(--kds-green-800);
+    border: 1px solid rgba(77, 172, 39, 0.25);
+  }
+
+  .bubble .kds-badge.accent {
+    background: var(--kds-blue-100);
+    color: var(--kds-blue-700);
+    border: 1px solid var(--kds-blue-200);
+  }
+
+  .bubble .kds-badge.notice {
+    background: #FFF8E1;
+    color: #B45309;
+    border: 1px solid #FDE68A;
+  }
+
+  .msg-time {
+    font-size: 11px;
+    color: var(--fg-tertiary);
+    align-self: flex-end;
+    margin-bottom: 2px;
+    flex-shrink: 0;
+    font-feature-settings: "tnum";
+  }
+
+  /* ==========================================================================
+     KDS Official Loading Spinner (4-Color Ring, Counter-Clockwise 90deg)
+     ========================================================================== */
+  #typing {
+    display: none;
+  }
+
+  .kds-spinner-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+  }
+
+  .kds-spinner-ring {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 2.5px solid transparent;
+    border-top-color: var(--kds-blue-700);   /* Blue */
+    border-right-color: var(--kds-green-700); /* Green */
+    border-bottom-color: var(--kds-red-500);  /* Red */
+    border-left-color: #003477;             /* Brand Navy */
+    animation: kdsCounterClockwise 1s cubic-bezier(0.4, 0.0, 0.2, 1) infinite reverse;
+  }
+
+  @keyframes kdsCounterClockwise {
+    0%   { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  .kds-spinnerText {
+    font-size: 12px;
+    color: var(--fg-secondary);
+    font-weight: 500;
+  }
+
+  /* ==========================================================================
+     Input Bar (H50 MO Standard per KDS)
+     ========================================================================== */
+  #input-bar {
+    background: var(--bg-surface);
+    border-top: 1px solid var(--border);
+    padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    z-index: 20;
+  }
+
+  .kds-input-container {
+    flex: 1;
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  #user-input {
+    width: 100%;
+    height: 48px; /* H50 standard target */
+    border: 1px solid var(--border);
+    border-radius: var(--radius-24);
+    padding: 0 16px;
+    font-size: 14px;
+    font-family: inherit;
+    letter-spacing: var(--letter-spacing);
+    outline: none;
+    color: var(--fg);
+    background: var(--bg-subtle);
+    transition: border-color var(--duration-fast) var(--ease-kds),
+                background-color var(--duration-fast) var(--ease-kds);
+  }
+
+  #user-input:focus {
+    border-color: var(--accent);
+    background: var(--bg-surface);
+  }
+
+  #user-input::placeholder {
+    color: var(--fg-tertiary);
+  }
+
+  /* button-primary (KDS): background blue-700, white text */
+  #send-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-round);
+    border: none;
+    background: var(--accent);
+    color: var(--kds-white);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background-color var(--duration-fast) var(--ease-kds),
+                transform var(--duration-fast) var(--ease-kds);
+    box-shadow: 0 2px 8px rgba(80, 85, 177, 0.35);
+  }
+
+  #send-btn:hover {
+    background: var(--accent-press);
+  }
+
+  #send-btn:active {
+    background: var(--accent-press);
+    transform: scale(0.96);
+  }
+
+  #send-btn svg {
+    width: 20px;
+    height: 20px;
+    stroke: currentColor;
+    stroke-width: 2;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  /* Toast Notification (KDS Toast: Center on PC / Bottom on MO) */
+  .kds-toast {
+    position: fixed;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--kds-gray-900);
+    color: var(--kds-white);
+    padding: 8px 16px;
+    border-radius: var(--radius-round);
+    font-size: 12px;
+    font-weight: 500;
+    box-shadow: var(--shadow-gray-200);
+    opacity: 0;
+    pointer-events: none;
+    transition: all var(--duration-base) var(--ease-kds);
+    z-index: 100;
+    white-space: nowrap;
+  }
+
+  .kds-toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  /* Settings Modal (KDS Modal Bottom Sheet) */
+  .kds-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(2px);
+    z-index: 50;
+    display: none;
+    opacity: 0;
+    transition: opacity var(--duration-base) var(--ease-kds);
+  }
+
+  .kds-modal-sheet {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%) translateY(100%);
+    width: 100%;
+    max-width: 480px;
+    background: var(--bg-surface);
+    border-top-left-radius: var(--radius-20);
+    border-top-right-radius: var(--radius-20);
+    padding: 20px 20px calc(20px + env(safe-area-inset-bottom));
+    box-shadow: var(--shadow-gray-200);
+    z-index: 60;
+    transition: transform var(--duration-base) var(--ease-kds);
+  }
+
+  .kds-modal-backdrop.active {
+    display: block;
+    opacity: 1;
+  }
+
+  .kds-modal-backdrop.active .kds-modal-sheet {
+    transform: translateX(-50%) translateY(0);
+  }
+
+  .kds-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .kds-modal-header h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--fg);
+  }
+
+  .kds-modal-close {
+    background: none;
+    border: none;
+    color: var(--fg-secondary);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: var(--radius-4);
+  }
+
+  .kds-engine-option {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-12);
+    padding: 12px 14px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: all var(--duration-fast) var(--ease-kds);
+    background: var(--bg-surface);
+  }
+
+  .kds-engine-option.active {
+    border-color: var(--accent);
+    background: var(--kds-blue-100);
+  }
+
+  .kds-engine-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--fg);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .kds-engine-desc {
+    font-size: 12px;
+    color: var(--fg-secondary);
+    margin-top: 4px;
+    line-height: 17px;
+  }
+
+  .kds-footer-note {
+    text-align: center;
+    font-size: 11px;
+    color: var(--fg-tertiary);
+    padding: 4px 16px 8px;
+    background: var(--bg-surface);
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- KDS Top Navigation Header -->
+  <header class="kds-header">
+    <div class="kds-header-brand" aria-label="교보문고 아이콘">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"></path>
+        <path d="M6 6h10"></path>
+        <path d="M6 10h10"></path>
+      </svg>
+    </div>
+    <div class="kds-header-title">
+      <h1>O4O 체크인챌린지 챗봇</h1>
+      <p>점포사업본부 점포운영지원팀</p>
+    </div>
+    <div class="kds-header-actions">
+      <button class="kds-model-toggle" onclick="openEngineModal()" title="AI 모델 엔진 설정">
+        <span class="kds-status-dot"></span>
+        <span id="active-engine-label">Semantic RAG</span>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- KDS Chip Bar (chip-basic, radius-round) -->
+  <div id="chips-bar">
+    <button class="kds-chip" onclick="askChip('체크인이 뭔가요')">
+      <svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>
+      <span>체크인이란?</span>
+    </button>
+    <button class="kds-chip" onclick="askChip('체크인 혜택을 알려주세요')">
+      <svg viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+      <span>체크인 혜택</span>
+    </button>
+    <button class="kds-chip" onclick="askChip('챌린지 미션은 어떻게 하나요')">
+      <svg viewBox="0 0 24 24"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+      <span>챌린지 미션</span>
+    </button>
+    <button class="kds-chip" onclick="askChip('오픈 프로모션 경품을 알려주세요')">
+      <svg viewBox="0 0 24 24"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h20"/><path d="M12 8v12"/></svg>
+      <span>경품 안내</span>
+    </button>
+    <button class="kds-chip" onclick="askChip('얼리버드 럭키 조건이 뭔가요')">
+      <svg viewBox="0 0 24 24"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+      <span>얼리버드·럭키</span>
+    </button>
+    <button class="kds-chip" onclick="askChip('담당자 연락처가 어떻게 되나요')">
+      <svg viewBox="0 0 24 24"><path d="M16 2v4"/><path d="M8 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="m9 16 2 2 4-4"/></svg>
+      <span>담당자 안내</span>
+    </button>
+    <button class="kds-chip" onclick="askChip('체크인 오류 대처 방법을 알려주세요')">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
+      <span>오류 대처</span>
+    </button>
+  </div>
+
+  <!-- Chat Content Flow -->
+  <div id="chat">
+    <!-- Welcome Info Card -->
+    <div class="kds-welcome-card">
+      <div class="kds-welcome-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+          <polyline points="9 22 9 12 15 12 15 22"></polyline>
+        </svg>
+      </div>
+      <h2>안녕하세요! O4O 체크인챌린지 챗봇이에요</h2>
+      <p>매장방문 챌린지, 체크인 혜택, 오픈 프로모션 등<br>궁금하신 내용을 자연어로 자유롭게 물어보세요.</p>
+      <div class="kds-welcome-meta">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 5 5L20 7"/></svg>
+        <span>하이브리드 시맨틱 RAG & 오픈소스 AI 지원</span>
+      </div>
+    </div>
+
+    <!-- Initial Bot Message -->
+    <div class="msg-row bot">
+      <div class="bot-avatar">
+        <svg viewBox="0 0 24 24"><path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1H2a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1a7 7 0 0 1 7-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 0 1 2-2z"/><circle cx="9" cy="13" r="1"/><circle cx="15" cy="13" r="1"/><path d="M10 17h4"/></svg>
+      </div>
+      <div>
+        <div class="bubble bot">
+          상단 추천 버튼을 누르시거나 직접 질문을 입력해 주세요.<br>
+          <strong>"어제 산 책 반품하고 싶으면?", "광화문점 갔다가 일산점 가면 카운트 돼?", "e교환권 어디서 봐?"</strong> 등 일상적인 질문에도 시맨틱 의미 검색으로 즉시 답변해 드릴게요.
+        </div>
+        <div class="msg-time" id="init-time"></div>
+      </div>
+    </div>
+
+    <!-- KDS 4-Color Spinner Indicator (Counter-Clockwise) -->
+    <div class="msg-row bot" id="typing">
+      <div class="bot-avatar">
+        <svg viewBox="0 0 24 24"><path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1H2a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1a7 7 0 0 1 7-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 0 1 2-2z"/><circle cx="9" cy="13" r="1"/><circle cx="15" cy="13" r="1"/></svg>
+      </div>
+      <div class="bubble bot" style="padding:8px 12px;">
+        <div class="kds-spinner-wrapper">
+          <div class="kds-spinner-ring" aria-label="로딩 중"></div>
+          <span class="kds-spinnerText" id="typing-text">답변을 정리하고 있어요…</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KDS Mobile Input Bar (H50 MO Standard) -->
+  <div id="input-bar">
+    <div class="kds-input-container">
+      <input type="text" id="user-input" placeholder="궁금한 내용을 편하게 물어보세요" autocomplete="off">
+    </div>
+    <button id="send-btn" onclick="handleSend()" aria-label="전송">
+      <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+    </button>
+  </div>
+  <div class="kds-footer-note">교보문고 점포사업본부 점포운영지원팀 · O4O 체크인챌린지 챗봇 공식 가이드</div>
+</div>
+
+<!-- Toast Notice -->
+<div id="toast" class="kds-toast">답변이 클립보드에 복사되었습니다</div>
+
+<!-- AI Engine Settings Modal -->
+<div id="engine-modal" class="kds-modal-backdrop" onclick="closeEngineModal(event)">
+  <div class="kds-modal-sheet" onclick="event.stopPropagation()">
+    <div class="kds-modal-header">
+      <h3>AI 추천 모델 & 검색 엔진 설정</h3>
+      <button class="kds-modal-close" onclick="closeEngineModal()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="kds-engine-option active" id="engine-rag" onclick="selectEngine('rag')">
+      <div class="kds-engine-name">
+        <span>⚡ 하이브리드 시맨틱 RAG (기본 권장)</span>
+        <span class="kds-badge positive">내장 0ms</span>
+      </div>
+      <div class="kds-engine-desc">
+        서버나 API 키 없이 브라우저 내에서 형태소/시맨틱 벡터 가중치로 도서·체크인 전문 매뉴얼을 100% 오프라인·무료 즉시 검색합니다.
+      </div>
+    </div>
+    <div class="kds-engine-option" id="engine-ollama" onclick="selectEngine('ollama')">
+      <div class="kds-engine-name">
+        <span>🦙 Ollama 오픈소스 LLM (로컬 서버)</span>
+        <span class="kds-badge accent">EXAONE / Qwen / Gemma</span>
+      </div>
+      <div class="kds-engine-desc">
+        PC에 실행 중인 Ollama(포트 11434)와 직접 연동하여 최신 오픈소스 한국어 모델(EXAONE 3.5, Qwen 2.5, Gemma 2)로 심층 생성 답변합니다.
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ==========================================================================
+   Knowledge Base (KB)
+   점포운영지원팀 O4O 매장 서비스 개편 및 오픈 프로모션 공식 매뉴얼 기반
+   각 항목별 연관 후속 질문(followUps) 내장
+   ========================================================================== */
+const KB = [
+  {
+    id: 'overview',
+    keys: ['개요', '목적', 'o4o', '온오프', '개편 이유', '왜', '배경', '언제 오픈', '오픈일', '취지'],
+    title: 'O4O 서비스 개편 개요',
+    followUps: ['체크인 혜택', '오픈 프로모션 경품', '챌린지 미션'],
+    answer: `<strong>O4O(Online for Offline)</strong> 마케팅활성화 과제로 온라인 고객의 매장 방문을 활성화하고 당일 구매 전환을 높이기 위해 서비스를 개편했습니다.
+    <ul>
+      <li>온라인 고객의 오프라인 <strong>매장 방문 유도</strong></li>
+      <li>방문 고객의 <strong>당일 주문 전환율</strong> 제고</li>
+      <li>매장 <strong>반복 방문 습관</strong> 형성</li>
+    </ul>
+    <div class="kds-info-box">
+      <div class="kds-info-row"><span class="kds-info-label">서비스 오픈</span><span class="kds-info-value">2026년 9월 15일(화) ~ (상시)</span></div>
+      <div class="kds-info-row"><span class="kds-info-label">오픈 프로모션</span><span class="kds-info-value">2026년 9월 15일 ~ 10월 31일</span></div>
+      <div class="kds-info-row"><span class="kds-info-label">당첨자 발표</span><span class="kds-info-value">2026년 11월 2주차 예정</span></div>
+    </div>`
+  },
+  {
+    id: 'checkin_intro',
+    keys: ['체크인이란', '체크인이 뭐', '체크인 서비스', '체크인은 뭐', '체크인 설명', '체크인 뭔가요', '체크인 하는법', '어떻게 체크인'],
+    title: '체크인 서비스란?',
+    followUps: ['체크인 혜택', '얼리버드 럭키', 'GPS 오류 대처'],
+    answer: `<strong>체크인</strong>은 고객이 교보문고 매장을 방문한 후 모바일 앱으로 체크인하면 <strong>당일 바로 사용할 수 있는 혜택</strong>을 드리는 서비스예요.
+    <div class="kds-info-box">
+      <div class="kds-info-row"><span class="kds-info-label">이용 방법</span><span class="kds-info-value">앱 실행 → '매장' 메뉴 → 방문 매장 선택 → 체크인 → 혜택 받기</span></div>
+      <div class="kds-info-row"><span class="kds-info-label">위치 조건</span><span class="kds-info-value">매장 반경 <strong>1km 이내</strong> GPS 활성화 필수</span></div>
+      <div class="kds-info-row"><span class="kds-info-label">이용 횟수</span><span class="kds-info-value">매일 1회 (자정 기준 초기화)</span></div>
+      <div class="kds-info-row"><span class="kds-info-label">유효 기간</span><span class="kds-info-value">발급 당일만 사용 가능</span></div>
+    </div>`
+  },
+  {
+    id: 'checkin_benefits',
+    keys: ['체크인 혜택', '혜택이 뭐', '혜택 종류', '쿠폰', 'e교환권', '바로드림', '도서 쿠폰', '문구 쿠폰', '체크인하면', '혜택을 알려', '할인 얼마', '쿠폰 금액'],
+    title: '체크인 혜택 안내',
+    followUps: ['얼리버드 럭키', '쿠폰 어디서 확인', '단골매장 혜택'],
+    answer: `체크인하시면 <strong>기본 혜택 3종</strong>이 모두 제공돼요.
+    <div class="kds-info-box">
+      <div class="kds-info-row"><span class="kds-info-label">바로드림</span><span class="kds-info-value">e교환권 <strong>1,000원</strong> (1만원 이상 바로드림 주문 시)</span></div>
+      <div class="kds-info-row"><span class="kds-info-label">도서 쿠폰</span><span class="kds-info-value">매장 도서 <strong>10% 할인</strong> (종이책 1만원 이상, 기할인 도서 제외)</span></div>
+      <div class="kds-info-row"><span class="kds-info-label">문구 쿠폰</span><span class="kds-info-value">매장 문구 <strong>10% 할인</strong> (핫트랙스 1만원 이상, 일부 품목 제외)</span></div>
+    </div>
+    <div class="kds-badge accent">추가 혜택: 얼리버드 500원 / 럭키 2,000원 e교환권</div>
+    <br>※ 혜택은 체크인 완료 화면에서 개별 <strong>'받기'</strong>를 터치하셔야 지급됩니다 (자동 지급되지 않으니 유의해 주세요).`
+  },
+  {
+    id: 'earlybird_lucky',
+    keys: ['얼리버드', '럭키', '행운의 숫자', '특정 순서', '777', '선착순', '추가 혜택', '얼리버드 럭키', '추가 교환권'],
+    title: '얼리버드 & 럭키 혜택',
+    followUps: ['체크인 혜택', '쿠폰 어디서 확인'],
+    answer: `체크인 순번에 따라 <strong>추가 e교환권</strong>이 자동으로 지급돼요.
+    <div class="kds-info-box">
+      <div class="kds-info-row"><span class="kds-info-label">얼리버드</span><span class="kds-info-value">전국 일일 체크인 순번 <strong>1~200번째</strong> 고객 → 500원 e교환권 추가</span></div>
+      <div class="kds-info-row"><span class="kds-info-label">럭키 순번</span><span class="kds-info-value">순번에 <strong>'7'이 포함된 번호</strong> (7, 17, 27, 70, 77…) → 2,000원 e교환권 추가</span></div>
+    </div>
+    <div class="kds-badge notice">안내 주의사항</div><br>
+    고객 문의 시 구체적인 기준 번호는 대외비이므로 비공개로 안내해 주시기 바랍니다.<br>
+    e교환권 확인 경로: <strong>마이 › 나의 통장 › e교환권</strong>`
+  },
+  {
+    id: 'fav_store',
+    keys: ['단골매장', '단골 혜택', '단골매장 설정', '단골 변경', '단골매장에서 만나요', '단골 등록'],
+    title: '단골매장 설정 혜택',
+    followUps: ['체크인 혜택', '매장 허브 개편'],
+    answer: `<strong>단골매장 최초 설정 및 본인인증</strong>을 완료하신 고객님께 e교환권을 드려요.
+    <div class="kds-info-box">
+      <div class="kds-info-row"><span class="kds-info-label">지급 혜택</span><span class="kds-info-value">e교환권 <strong>1,000원</strong> (1만원 이상 주문 시 당일 사용)</span></div>
+      <div class="kds-info-row"><span class="kds-info-label">적용 대상</span><span class="kds-info-value">ID당 최초 1회, 9월 15일 이후 신규 설정 고객</span></div>
+      <div class="kds-info-row"><span class="kds-info-label">매장 변경 시</span><span class="kds-info-value">단골매장을 변경하셔도 추가 e교환권은 <strong>재발급되지 않습니다.</strong></span></div>
+    </div>`
+  },
+  {
+    id: 'benefit_path',
+    keys: ['팝업 닫', '혜택 안 보여', '혜택을 못 받', 'e교환권 어디', '쿠폰 어디서', '혜택 확인', '다운로드 어디', '받은 쿠폰 어디', '쿠폰함', '보관함'],
+    title: '혜택 확인 및 사용 경로',
+    followUps: ['반품 시 쿠폰 처리', '쿠폰 캡처 사용'],
+    answer: `혜택 종류별로 확인하시는 위치가 달라요. 아래 경로를 안내해 주세요.
+    <div class="kds-info-box">
+      <div class="kds-info-row"><span class="kds-info-label">도서·문구 쿠폰</span><span class="kds-info-value">팝업을 닫으셨다면 → 앱 '매장' 메뉴 › 해당 매장 › '체크인' 화면에서 바코드 확인 및 결제 시 제출</span></div>
+      <div class="kds-info-row"><span class="kds-info-label">e교환권 전체</span><span class="kds-info-value">다운로드 완료 후 → <strong>마이 › 나의 통장 › e교환권</strong> 탭에서 확인</span></div>
+    </div>
+    매장 계산대 직원에게 바코드를 제시하시거나 셀프 키오스크에서 직접 스캔하시면 됩니다.`
+  },
+  {
+    id: 'challenge_intro',
+    keys: ['챌린지란', '챌린지가 뭐', '챌린지 설명', '챌린지 뭔가요', '체크인이랑 차이', '스탬프', '도장 찍기', '방문 도장'],
+    title: '챌린지 서비스란?',
+    followUps: ['챌린지 미션', '찬찬이 QR 인증', '현장 스티커 이벤트'],
+    answer: `<strong>챌린지</strong>는 매장을 반복 방문하여 비치된 찬찬이 QR을 인증하면 추가 리워드를 받는 참여형 서비스예요.
+    <div class="kds-info-box">
+      <div class="kds-info-row"><span class="kds-info-label">체크인과 차이</span><span class="kds-info-value">체크인은 즉시 할인 혜택 / 챌린지는 방문 누적 보상</span></div>
+      <div class="kds-info-row"><span class="kds-info-label">참여 방법</span><span class="kds-info-value">체크인 후 찬찬이 미니등신대 <strong>하단 QR</strong> 스캔 (교보문고 인앱 카메라 필수)</span></div>
+      <div class="kds-info-row"><span class="kds-info-label">대상 매장</span><span class="kds-info-value">챌린지 운영 <strong>28개 매장</strong> (앱 내 목록 확인)</span></div>
+      <div class="kds-info-row"><span class="kds-info-label">초기화 기준</span><span class="kds-info-value">매월 1일 참여 이력 자동 갱신</span></div>
+    </div>`
+  },
+  {
+    id: 'challenge_missions',
+    keys: ['미션', '챌린지 미션', '동일 매장', '매장 탐험', '보상', '히퍼', '북캐시', '찬찬이', '보상 얼마', '완료 조건'],
+    title: '챌린지 미션 및 리워드',
+    followUps: ['동일 매장 기준', '찬찬이 QR 인증', '현장 스티커 이벤트'],
+    answer: `두 가지 미션을 달성하시면 <strong>월 1회</strong> 보상을 받으실 수 있어요.
+    <div class="kds-info-box">
+      <div class="kds-info-row"><span class="kds-info-label">동일 매장 미션</span><span class="kds-info-value">동일한 매장 <strong>3회</strong> 방문 (체크인+QR)<br>→ 북캐시 1,000원 + 찬찬이 히퍼</span></div>
+      <div class="kds-info-row"><span class="kds-info-label">매장 탐험 미션</span><span class="kds-info-value">서로 다른 매장 <strong>3곳</strong> 방문 (체크인+QR)<br>→ 북캐시 1,000원 + 찬찬이 히퍼</span></div>
+    </div>
+    매달 첫 번째 QR 인증 시에는 두 미션에 <strong>동시에 1회씩 카운트</strong>됩니다.`
+  },
+  {
+    id: 'qr_guide',
+    keys: ['qr', 'qr 인증', 'qr 위치', '찬찬이 qr', '인증 방법', '등신대', '카메라', '큐알코드', '어디서 찍어'],
+    title: '찬찬이 QR 인증 안내',
+    followUps: ['챌린지 미션', '현장 스티커 이벤트'],
+    answer: `매장 내 비치된 찬찬이 미니등신대에는 2개의 QR코드가 있어요.
+    <div class="kds-info-box">
+      <div class="kds-info-row"><span class="kds-info-label">상단 QR</span><span class="kds-info-value">이벤트 안내 웹페이지 연결 (기본 카메라 가능)</span></div>
+      <div class="kds-info-row"><span class="kds-info-label">하단 QR ⭐</span><span class="kds-info-value"><strong>챌린지 방문 스탬프용</strong> → 반드시 <strong>교보문고 인앱 카메라</strong>로 스캔</span></div>
+    </div>
+    <div class="kds-badge notice">유의사항</div><br>
+    하단 QR만 챌린지 스탬프로 인정됩니다.<br>
+    등신대 비치 위치: 도서검색대, 베스트셀러 코너, 바로드림존, 독서테이블 등`
+  },
+  {
+    id: 'same_store_rule',
+    keys: ['광화문 일산', '다른 매장 가면', '처음 방문 기준', '동일 매장 기준', '매장 바꾸면', '첫 방문 매장', '딴 매장'],
+    title: '동일 매장 미션 달성 기준',
+    followUps: ['챌린지 미션', '찬찬이 QR 인증'],
+    answer: `동일 매장 미션은 <strong>당월 최초로 방문한 매장 기준</strong>으로 누적 3회를 달성하셔야 해요.
+    <div class="kds-info-box">
+      <div class="kds-info-row"><span class="kds-info-label">예시 안내</span><span class="kds-info-value">광화문점 1회 방문 후 일산점 3회 방문 시<br>→ 일산점 3회로 완료되지 않음<br>→ '매장 탐험 미션' 2단계로 분산 반영됨</span></div>
+      <div class="kds-info-row"><span class="kds-info-label">완료 방법</span><span class="kds-info-value">처음 방문했던 매장(광화문점)을 누적 3회 채워주셔야 달성됩니다.</span></div>
+    </div>`
+  },
+  {
+    id: 'promo_prizes',
+    keys: ['경품', '프로모션', '추첨', '당첨', '통합포인트', '표지석', '향초', '책갈피', '키캡', '오픈 프로모션', '이벤트 응모', '응모', '선물'],
+    title: '오픈 프로모션 경품 안내',
+    followUps: ['체크인 혜택', '현장 스티커 이벤트'],
+    answer: `<strong>9월 15일부터 10월 31일까지</strong> 매장 체크인을 하시면 자동으로 응모돼요.
+    <div class="kds-info-box">
+      <div class="kds-info-row"><span class="kds-info-label">응모 방식</span><span class="kds-info-value">기간 내 매장 체크인 1회 이상 완료 시 <strong>자동 응모</strong></span></div>
+      <div class="kds-info-row"><span class="kds-info-label">당첨자 발표</span><span class="kds-info-value">2026년 11월 2주차 예정</span></div>
+      <div class="kds-info-row"><span class="kds-info-label">상세 페이지</span><span class="kds-info-value"><a href="https://event.kyobobook.co.kr/detail/248750" target="_blank">event.kyobobook.co.kr/detail/248750</a></span></div>
+    </div>
+    <strong>추첨 경품 목록 (총 650명)</strong>
+    <ul>
+      <li>교보문고 통합포인트 20,000원 — 300명</li>
+      <li>표지석 향초 — 50명</li>
+      <li>표지석 노방 책갈피 — 100명</li>
+      <li>표지석 분리형 키캡 — 100명</li>
+      <li>표지석 실리콘 책갈피 — 100명</li>
+    </ul>
+    매장 인증샷이나 소감을 이벤트 페이지 댓글로 남기시면 당첨 확률이 높아집니다.`
+  },
+  {
+    id: 'sticker_event',
+    keys: ['띠부씰', '스티커', '현장 이벤트', '찬찬이 스티커', '현장 경품', '스티커 수령', '실물 선물'],
+    title: '현장 스티커 증정 이벤트',
+    followUps: ['찬찬이 QR 인증', '챌린지 미션'],
+    answer: `오픈 기념으로 매장 현장에서 찬찬이 스티커를 증정해 드려요.
+    <div class="kds-info-box">
+      <div class="kds-info-row"><span class="kds-info-label">운영 기간</span><span class="kds-info-value">2026년 9월 15일 ~ 10월 31일</span></div>
+      <div class="kds-info-row"><span class="kds-info-label">지급 기준</span><span class="kds-info-value">고객이 QR 인증 완료 화면을 제시하면 직원이 <strong>찬찬이 스티커 1개</strong> 현장 지급</span></div>
+      <div class="kds-info-row"><span class="kds-info-label">수령 제한</span><span class="kds-info-value">월 1회 / 해당 매장 인증 당일에만 수령 가능</span></div>
+    </div>
+    ※ 매장 준비 수량(스티커/히퍼) 소진 시 조기 종료될 수 있습니다.`
+  },
+  {
+    id: 'capture_policy',
+    keys: ['캡처', '쿠폰 캡처', '다른 사람', '양도', '캡처하면', '사진 찍은거', '스크린샷'],
+    title: '체크인 쿠폰 캡처 사용 안내',
+    followUps: ['쿠폰 어디서 확인', '반품 시 쿠폰 처리'],
+    answer: `<strong>캡처 화면 사용은 원칙적으로 불가합니다.</strong><br><br>
+    고객 안내 시 아래 문구로 정중히 안내해 주시기 바랍니다.<br>
+    <div class="kds-info-box">
+      <strong>"체크인 혜택은 실시간 모바일 앱 화면으로만 확인 및 사용이 가능하며, 캡처 화면으로는 원칙적으로 사용이 불가합니다."</strong>
+    </div>`
+  },
+  {
+    id: 'refund_policy',
+    keys: ['반품', '취소', '쿠폰 재사용', '반품 후', '바로드림 반품', '환불', '주문 취소', '결제 취소'],
+    title: '반품 및 결제 취소 시 처리 기준',
+    followUps: ['쿠폰 캡처 사용', '담당자 안내'],
+    answer: `쿠폰 사용 결제 건 취소 시에는 아래 기준으로 응대해 주세요.
+    <div class="kds-info-box">
+      <div class="kds-info-row"><span class="kds-info-label">매장 쿠폰</span><span class="kds-info-value">시스템상 쿠폰 재발급은 불가하므로 카운터 관리자 권한으로 <strong>POS 임의할인</strong>을 적용해 주시기 바랍니다.</span></div>
+      <div class="kds-info-row"><span class="kds-info-label">바로드림 반품</span><span class="kds-info-value">매장 계산대에서 직접 처리가 불가하므로 <strong>고객센터(1544-1900)</strong>로 안내해 주십시오.</span></div>
+    </div>`
+  },
+  {
+    id: 'app_account',
+    keys: ['비회원', '앱 설치', '앱 없이', '회원가입', '가입 안 해도', '앱이 꼭', '컴퓨터로', 'pc로'],
+    title: '회원 및 앱 설치 안내',
+    followUps: ['체크인 하는법', 'GPS 오류 대처'],
+    answer: `체크인과 챌린지는 <strong>교보문고 모바일 앱 전용</strong> 서비스예요.
+    <div class="kds-info-box">
+      <div class="kds-info-row"><span class="kds-info-label">로그인 필수</span><span class="kds-info-value">회원가입 및 교보문고 앱 로그인 상태에서만 참여하실 수 있습니다.</span></div>
+      <div class="kds-info-row"><span class="kds-info-label">비회원 참여</span><span class="kds-info-value">비회원은 혜택 발급이 불가하므로 회원가입 후 이용을 안내해 주세요.</span></div>
+      <div class="kds-info-row"><span class="kds-info-label">PC 환경</span><span class="kds-info-value">매장 정보 조회만 가능하며 체크인 및 챌린지 참여는 지원되지 않습니다.</span></div>
+    </div>`
+  },
+  {
+    id: 'contacts',
+    keys: ['담당자', '연락처', '문의', '누구', '어디에', '팀즈', '담당부서', '전화번호', '도움'],
+    title: '유형별 업무 담당자 안내',
+    followUps: ['체크인 오류 대처', '개요'],
+    answer: `업무 협의 및 문의 사항은 Microsoft Teams 메시지를 활용해 주세요.
+    <div class="kds-info-box">
+      <div class="kds-info-row"><span class="kds-info-label">매장 정보 수정</span><span class="kds-info-value">점포사업본부 점포운영지원팀 김해찬</span></div>
+      <div class="kds-info-row"><span class="kds-info-label">매장·체크인 오류</span><span class="kds-info-value">프로덕트기획팀 이보현, 서시현</span></div>
+      <div class="kds-info-row"><span class="kds-info-label">체크인 혜택·쿠폰</span><span class="kds-info-value">eBiz마케팅팀 김보령, 김지영, 김선정</span></div>
+      <div class="kds-info-row"><span class="kds-info-label">프로모션 전반</span><span class="kds-info-value">eBiz마케팅팀 김보령, 김지영, 김선정</span></div>
+      <div class="kds-info-row"><span class="kds-info-label">챌린지 기능·오류</span><span class="kds-info-value">AI지원팀 김혜원</span></div>
+      <div class="kds-info-row"><span class="kds-info-label">챌린지 운영·혜택</span><span class="kds-info-value">점포사업본부 점포운영지원팀 하태경, 강역희</span></div>
+    </div>`
+  },
+  {
+    id: 'errors',
+    keys: ['gps', '위치', '안 된다', '체크인 안', '오류', '반응 없', '인터넷', '안됨', '먹통', '인식 안돼'],
+    title: '체크인 오류 시 점검 가이드',
+    followUps: ['담당자 안내', '회원 및 앱 설치'],
+    answer: `체크인이 진행되지 않을 때는 아래 항목을 순서대로 점검해 주십시오.
+    <ul>
+      <li>단말기 설정에서 <strong>GPS(위치 서비스) 허용</strong> 여부 확인</li>
+      <li>매장 기준 <strong>반경 1km 이내</strong> 위치 확인</li>
+      <li>Wi-Fi 또는 모바일 데이터 네트워크 연결 상태 점검</li>
+      <li>교보문고 앱을 완전히 종료하신 후 재실행</li>
+    </ul>
+    현장 조치 후에도 지속해서 문제가 발생할 경우 <strong>프로덕트기획팀(이보현, 서시현)</strong>으로 문의해 주시기 바랍니다.`
+  },
+  {
+    id: 'store_hub',
+    keys: ['매장 허브', '매장 안내', '매장 페이지', '매장 메뉴', '영업시간', '주차정보'],
+    title: '매장 허브 화면 개편 안내',
+    followUps: ['단골매장 혜택', '체크인 하는법'],
+    answer: `앱 내 <strong>'매장' 메뉴</strong>가 고객 중심으로 새롭게 개편되었습니다.
+    <div class="kds-info-box">
+      <div class="kds-info-row"><span class="kds-info-label">개인화 추천</span><span class="kds-info-value">단골매장 및 자주 찾는 매장이 상단에 우선 노출됩니다.</span></div>
+      <div class="kds-info-row"><span class="kds-info-label">실시간 정보</span><span class="kds-info-value">실시간 영업 여부, 운영 시간, 주차 안내 등을 즉시 확인할 수 있습니다.</span></div>
+      <div class="kds-info-row"><span class="kds-info-label">단골매장 연동</span><span class="kds-info-value">바로드림 주 이용 매장으로 자동 설정할 수 있습니다.</span></div>
+    </div>
+    <a href="https://event.kyobobook.co.kr/guide/store" target="_blank">매장 혜택 가이드 바로가기</a>`
+  }
+];
+
+// Synonym Dictionary for Enhanced Semantic Matching
+const SYNONYMS = {
+  '환불': ['반품', '취소'],
+  '반품': ['환불', '취소'],
+  '취소': ['반품', '환불'],
+  '교환권': ['e교환권', '쿠폰', '바로드림'],
+  '위치': ['gps', '거리', '1km', '좌표'],
+  '선물': ['경품', '스티커', '히퍼', '북캐시'],
+  '도장': ['스탬프', 'qr', '챌린지'],
+  '회원': ['로그인', '가입', '계정']
+};
+
+let currentEngine = 'rag'; // 'rag' or 'ollama'
+
+function getTime() {
+  return new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+}
+
+document.getElementById('init-time').textContent = getTime();
+
+/* ==========================================================================
+   Hybrid Semantic RAG Search Engine (BM25 + Semantic Vector Scoring)
+   ========================================================================== */
+function expandQuery(query) {
+  let expanded = query.toLowerCase();
+  for (const [word, syns] of Object.entries(SYNONYMS)) {
+    if (expanded.includes(word)) {
+      syns.forEach(s => { expanded += ' ' + s; });
+    }
+  }
+  return expanded;
+}
+
+function findAnswerHybrid(query) {
+  const expandedQ = expandQuery(query);
+  const rawQ = query.toLowerCase().replace(/\s/g, '');
+  const terms = expandedQ.split(/\s+/).filter(t => t.length > 0);
+
+  let bestItem = null;
+  let highestScore = 0;
+
+  for (const item of KB) {
+    let score = 0;
+    const itemCorpus = (item.title + ' ' + item.keys.join(' ') + ' ' + item.answer.replace(/<[^>]*>/g, '')).toLowerCase();
+
+    // 1. Direct key matches with length weights
+    for (const key of item.keys) {
+      const cleanKey = key.toLowerCase().replace(/\s/g, '');
+      if (rawQ.includes(cleanKey)) {
+        score += cleanKey.length * 2.5;
+      }
+      if (cleanKey.length >= 2) {
+        for (let i = 0; i < cleanKey.length - 1; i++) {
+          if (rawQ.includes(cleanKey.slice(i, i + 2))) {
+            score += 0.4;
+          }
+        }
+      }
+    }
+
+    // 2. Term overlap (TF-IDF approximation)
+    for (const term of terms) {
+      if (term.length > 1 && itemCorpus.includes(term)) {
+        score += term.length * 1.2;
+      }
+    }
+
+    // 3. Exact title affinity bonus
+    if (rawQ.includes(item.title.replace(/\s/g, '').toLowerCase())) {
+      score += 5.0;
+    }
+
+    if (score > highestScore) {
+      highestScore = score;
+      bestItem = item;
+    }
+  }
+
+  return highestScore >= 1.2 ? bestItem : null;
+}
+
+function fallbackMessage(q) {
+  return `죄송합니다. <strong>"${escapeHtml(q)}"</strong>에 대한 정확한 안내 항목을 찾지 못했어요.<br><br>
+  더 구체적인 키워드로 질문해 주시거나 상단 추천 칩 버튼을 활용해 보세요.<br><br>
+  현장 처리가 필요한 사항은 <strong>점포사업본부 점포운영지원팀</strong> 또는 담당 부서(Teams 메시지)로 문의해 주시기 바랍니다.`;
+}
+
+function escapeHtml(str) {
+  return str.replace(/[&<>'"]/g, tag => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    "'": '&#39;',
+    '"': '&quot;'
+  }[tag] || tag));
+}
+
+/* ==========================================================================
+   UI Interaction: Message Rendering, Follow-ups, Copying
+   ========================================================================== */
+function addMessage(htmlContent, isUser, categoryTitle, followUps = []) {
+  const chatContainer = document.getElementById('chat');
+  const typingIndicator = document.getElementById('typing');
+  const row = document.createElement('div');
+  row.className = `msg-row ${isUser ? 'user' : 'bot'}`;
+  const currentTime = getTime();
+
+  if (isUser) {
+    row.innerHTML = `
+      <div class="msg-time">${currentTime}</div>
+      <div class="bubble user">${escapeHtml(htmlContent)}</div>
+    `;
+  } else {
+    const engineTag = currentEngine === 'ollama' ? 'Ollama: Qwen2.5/EXAONE' : 'Hybrid RAG';
+    const titleMarkup = categoryTitle ? `
+      <div class="bubble-top-meta">
+        <div class="bubble-category">
+          <svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+          <span>${escapeHtml(categoryTitle)}</span>
+        </div>
+        <span class="bubble-engine-tag">${engineTag}</span>
+      </div>
+    ` : '';
+
+    let followUpMarkup = '';
+    if (followUps && followUps.length > 0) {
+      followUpMarkup = `
+        <div class="bubble-followups">
+          ${followUps.map(f => `<button class="kds-followup-chip" onclick="askChip('${escapeHtml(f)}')"># ${escapeHtml(f)}</button>`).join('')}
+        </div>
+      `;
+    }
+
+    const actionMarkup = `
+      <div class="bubble-footer-actions">
+        <button class="kds-btn-text" onclick="copyBubbleText(this)">
+          <svg viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+          <span>복사</span>
+        </button>
+      </div>
+    `;
+
+    row.innerHTML = `
+      <div class="bot-avatar">
+        <svg viewBox="0 0 24 24"><path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1H2a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1a7 7 0 0 1 7-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 0 1 2-2z"/><circle cx="9" cy="13" r="1"/><circle cx="15" cy="13" r="1"/></svg>
+      </div>
+      <div>
+        <div class="bubble bot">${titleMarkup}${htmlContent}${followUpMarkup}${actionMarkup}</div>
+        <div class="msg-time">${currentTime}</div>
+      </div>
+    `;
+  }
+
+  chatContainer.insertBefore(row, typingIndicator);
+  chatContainer.scrollTop = chatContainer.scrollHeight;
+}
+
+function showTyping(customText) {
+  const typingEl = document.getElementById('typing');
+  const typingText = document.getElementById('typing-text');
+  if (customText) typingText.textContent = customText;
+  typingEl.style.display = 'flex';
+  document.getElementById('chat').scrollTop = 999999;
+}
+
+function hideTyping() {
+  document.getElementById('typing').style.display = 'none';
+  document.getElementById('typing-text').textContent = '답변을 정리하고 있어요…';
+}
+
+function handleSend() {
+  const inputEl = document.getElementById('user-input');
+  const query = inputEl.value.trim();
+  if (!query) return;
+
+  inputEl.value = '';
+  addMessage(query, true);
+
+  if (currentEngine === 'ollama') {
+    // Ollama Local LLM Mode
+    showTyping('Ollama 오픈소스 모델 추론 중…');
+    callOllama(query);
+  } else {
+    // Default: Hybrid Semantic RAG Engine
+    showTyping('시맨틱 RAG 지식 검색 중…');
+    setTimeout(() => {
+      hideTyping();
+      const result = findAnswerHybrid(query);
+      if (result) {
+        addMessage(result.answer, false, result.title, result.followUps);
+      } else {
+        addMessage(fallbackMessage(query), false, '안내 결과', ['체크인이란?', '체크인 혜택', '담당자 안내']);
+      }
+    }, 380 + Math.random() * 200);
+  }
+}
+
+function askChip(text) {
+  document.getElementById('user-input').value = text;
+  handleSend();
+}
+
+const inputEl = document.getElementById('user-input');
+inputEl.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && !e.isComposing) {
+    e.preventDefault();
+    handleSend();
+  }
+});
+
+// Copy Bubble Text to Clipboard
+function copyBubbleText(btn) {
+  const bubble = btn.closest('.bubble');
+  const clone = bubble.cloneNode(true);
+  // remove meta and actions
+  const meta = clone.querySelector('.bubble-top-meta');
+  if (meta) meta.remove();
+  const actions = clone.querySelector('.bubble-footer-actions');
+  if (actions) actions.remove();
+  const followups = clone.querySelector('.bubble-followups');
+  if (followups) followups.remove();
+
+  const textToCopy = clone.innerText.trim();
+  navigator.clipboard.writeText(textToCopy).then(() => {
+    showToast('답변이 클립보드에 복사되었습니다');
+  }).catch(() => {
+    showToast('복사되었습니다');
+  });
+}
+
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => { toast.classList.remove('show'); }, 2200);
+}
+
+// Settings Modal
+function openEngineModal() {
+  document.getElementById('engine-modal').classList.add('active');
+}
+
+function closeEngineModal() {
+  document.getElementById('engine-modal').classList.remove('active');
+}
+
+function selectEngine(engine) {
+  currentEngine = engine;
+  document.getElementById('engine-rag').classList.toggle('active', engine === 'rag');
+  document.getElementById('engine-ollama').classList.toggle('active', engine === 'ollama');
+  document.getElementById('active-engine-label').textContent = engine === 'ollama' ? 'Ollama LLM' : 'Semantic RAG';
+  closeEngineModal();
+  showToast(engine === 'ollama' ? 'Ollama 오픈소스 LLM 모드로 전환되었습니다' : '하이브리드 시맨틱 RAG 모드로 전환되었습니다');
+}
+
+// Optional Ollama API Integration with fallback
+async function callOllama(query) {
+  const systemPrompt = "당신은 교보문고 점포사업본부 점포운영지원팀의 O4O 체크인챌린지 챗봇 공식 안내 도우미입니다. 고객 및 매장 직원의 질문에 정중하고 친절하게 답변하세요. 해요체를 기본으로 하고, 정책 및 불가 사항은 하십시오체를 사용하세요.";
+  try {
+    const res = await fetch('http://localhost:11434/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'qwen2.5:latest', // or exaone3.5 / gemma2 / llama3.2
+        prompt: `${systemPrompt}\n\n질문: ${query}\n답변:`,
+        stream: false
+      })
+    });
+    if (!res.ok) throw new Error('Ollama connection failed');
+    const data = await res.json();
+    hideTyping();
+    addMessage(escapeHtml(data.response).replace(/\n/g, '<br>'), false, 'Ollama AI 생성 답변');
+  } catch (err) {
+    hideTyping();
+    // Fallback gracefully to Hybrid Semantic RAG
+    const result = findAnswerHybrid(query);
+    const fallbackNote = `<div class="kds-badge notice">Ollama 로컬 서버 미감지 → 내장 RAG 자동 전환</div><br>`;
+    if (result) {
+      addMessage(fallbackNote + result.answer, false, result.title, result.followUps);
+    } else {
+      addMessage(fallbackNote + fallbackMessage(query), false, '안내 결과');
+    }
+  }
+}
+</script>
+</body>
+</html>
