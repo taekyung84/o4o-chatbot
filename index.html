@@ -760,16 +760,17 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.85);
-    backdrop-filter: blur(5px);
-    z-index: 9999;
+    background: rgba(0, 0, 0, 0.82);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    z-index: 10000;
     display: flex;
     justify-content: center;
     align-items: center;
     padding: 16px;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.2s ease;
+    transition: opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .barcode-modal-overlay.active {
@@ -778,51 +779,143 @@
   }
 
   .barcode-modal-content {
+    position: relative;
     background: #ffffff;
     border-radius: 20px;
-    padding: 26px 20px 20px;
+    padding: 22px 20px 20px;
     width: 100%;
     max-width: 380px;
     text-align: center;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-    animation: kdsScaleUp 0.2s var(--ease-kds);
+    box-shadow: 0 24px 54px -10px rgba(0, 0, 0, 0.45);
+    transform: scale(0.92);
+    transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .barcode-modal-overlay.active .barcode-modal-content {
+    transform: scale(1);
+  }
+
+  .barcode-modal-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  .barcode-modal-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 9999px;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .barcode-modal-tag.book {
+    background: #eef2ff;
+    color: #3b5bdb;
+  }
+
+  .barcode-modal-tag.stationery {
+    background: #fff0f6;
+    color: #c2255c;
+  }
+
+  .barcode-modal-close-icon {
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f1f3f5;
+    border: none;
+    border-radius: 50%;
+    color: #495057;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.15s ease;
+  }
+
+  .barcode-modal-close-icon:hover {
+    background: #e9ecef;
+    color: #212529;
+    transform: scale(1.06);
+  }
+
+  .barcode-modal-close-icon:active {
+    transform: scale(0.96);
   }
 
   .barcode-modal-title {
-    font-size: 18px;
+    font-size: 17px;
     font-weight: 700;
     color: #111111;
     margin-bottom: 4px;
+    line-height: 1.35;
+    word-break: keep-all;
   }
 
   .barcode-modal-desc {
-    font-size: 12px;
+    font-size: 12.5px;
     color: #666666;
     margin-bottom: 16px;
   }
 
   .barcode-modal-box {
     background: #ffffff;
-    border: 2px solid #eeeeee;
+    border: 2px solid #e9ecef;
     border-radius: 12px;
-    padding: 20px 10px 14px;
-    margin-bottom: 16px;
+    padding: 20px 10px 16px;
+    margin-bottom: 12px;
   }
 
   .barcode-modal-box svg {
     max-width: 100%;
-    height: 90px;
+    height: 94px;
     display: block;
     margin: 0 auto;
   }
 
+  .barcode-modal-code-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 14px;
+  }
+
   .barcode-modal-code {
     font-family: Consolas, Monaco, monospace;
-    font-size: 20px;
+    font-size: 22px;
     font-weight: 700;
     letter-spacing: 3px;
     color: #000000;
-    margin-top: 12px;
+  }
+
+  .barcode-modal-copy-btn {
+    padding: 3px 8px;
+    background: #f1f3f5;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #495057;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .barcode-modal-copy-btn:hover {
+    background: #e9ecef;
+    color: #212529;
+  }
+
+  .barcode-modal-tip {
+    font-size: 11.5px;
+    color: #868e96;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
   }
 
   .barcode-modal-close {
@@ -1284,16 +1377,30 @@
         PC에 실행 중인 Ollama(포트 11434)와 직접 연동하여 최신 오픈소스 한국어 모델(EXAONE 3.5, Qwen 2.5, Gemma 2)로 심층 생성 답변합니다.
       </div>
     </div>
+  </div>
 </div>
 
-<!-- POS Barcode Scan Zoom Modal -->
+<!-- POS Barcode Scan Zoom Modal (레이어 팝업) -->
 <div id="barcode-modal" class="barcode-modal-overlay" onclick="closeBarcodeModal(event)">
   <div class="barcode-modal-content" onclick="event.stopPropagation()">
-    <div class="barcode-modal-title" id="modal-bc-title">도서 10% 할인 쿠폰</div>
+    <div class="barcode-modal-top">
+      <span class="barcode-modal-tag" id="modal-bc-tag">도서 10% 할인</span>
+      <button class="barcode-modal-close-icon" onclick="closeBarcodeModal()" aria-label="닫기">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="barcode-modal-title" id="modal-bc-title">도서 10% 할인 쿠폰 (현장 CS용)</div>
     <div class="barcode-modal-desc">매장 POS 바코드 리더기로 직접 스캔해 주세요</div>
     <div class="barcode-modal-box">
       <div id="modal-bc-svg"></div>
-      <div class="barcode-modal-code" id="modal-bc-code">202512120003</div>
+      <div class="barcode-modal-code-row">
+        <span class="barcode-modal-code" id="modal-bc-code">202512120003</span>
+        <button class="barcode-modal-copy-btn" id="modal-bc-copy-btn" onclick="copyModalBarcode()">복사</button>
+      </div>
+    </div>
+    <div class="barcode-modal-tip">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+      <span>단말기 화면 밝기를 올리시면 바코드 인식이 더욱 빠릅니다.</span>
     </div>
     <button class="barcode-modal-close" onclick="closeBarcodeModal()">닫기</button>
   </div>
@@ -1359,23 +1466,61 @@ function getCode128SVG(code, height = 64) {
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${totalWidth} ${height}" width="100%" height="${height}" preserveAspectRatio="xMidYMid meet">${rects}</svg>`;
 }
 
+let currentModalBarcodeCode = '';
+
 function openBarcodeModal(code, title, displayCode) {
   const modal = document.getElementById('barcode-modal');
   if (!modal) return;
-  document.getElementById('modal-bc-title').textContent = title;
-  document.getElementById('modal-bc-code').textContent = displayCode;
-  document.getElementById('modal-bc-svg').innerHTML = getCode128SVG(code, 96);
+  
+  currentModalBarcodeCode = code;
+  const tagEl = document.getElementById('modal-bc-tag');
+  if (tagEl) {
+    if (code === '202512120004' || (title && title.includes('문구'))) {
+      tagEl.textContent = '문구 10% 할인';
+      tagEl.className = 'barcode-modal-tag stationery';
+    } else {
+      tagEl.textContent = '도서 10% 할인';
+      tagEl.className = 'barcode-modal-tag book';
+    }
+  }
+
+  const titleEl = document.getElementById('modal-bc-title');
+  if (titleEl) titleEl.textContent = title;
+
+  const codeEl = document.getElementById('modal-bc-code');
+  if (codeEl) codeEl.textContent = displayCode || code;
+
+  const svgEl = document.getElementById('modal-bc-svg');
+  if (svgEl) svgEl.innerHTML = getCode128SVG(code, 94);
+
   modal.classList.add('active');
+  document.body.style.overflow = 'hidden';
 }
 
 function closeBarcodeModal(event) {
   const modal = document.getElementById('barcode-modal');
   if (!modal) return;
-  if (event && event.target && event.target !== modal && !event.target.classList.contains('barcode-modal-close')) {
+  if (event && event.target && event.target !== modal && 
+      !event.target.closest('.barcode-modal-close') && 
+      !event.target.closest('.barcode-modal-close-icon')) {
     return;
   }
   modal.classList.remove('active');
+  document.body.style.overflow = '';
 }
+
+function copyModalBarcode() {
+  if (!currentModalBarcodeCode) return;
+  copyBarcodeText(currentModalBarcodeCode, '바코드 번호');
+}
+
+// Global ESC key listener to close modals
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    closeBarcodeModal();
+    if (typeof closeEngineModal === 'function') closeEngineModal();
+  }
+});
 
 function copyBarcodeText(text, desc) {
   if (navigator.clipboard) {
